@@ -10,6 +10,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [showResult, setShowResult] = useState(false);
   const [allQuestionIds, setAllQuestionIds] = useState<Set<string>>(new Set());
+  const [voting, setVoting] = useState(false); // New state for vote loading
 
   useEffect(() => {
     fetchQuestions();
@@ -47,9 +48,10 @@ export default function Home() {
   };
 
   const vote = async (id: string, option: "A" | "B") => {
-    if (!questions) return;
+    if (!questions || voting) return;
 
     try {
+      setVoting(true); // Start vote loading
       await voteQuestion(id, option);
 
       const updatedQuestions = [...questions];
@@ -70,6 +72,8 @@ export default function Home() {
       } else {
         setError("Vote failed.");
       }
+    } finally {
+      setVoting(false); // End vote loading
     }
   };
 
@@ -172,20 +176,29 @@ export default function Home() {
           onClick={() => vote(q.id, "A")}
           className="flex-1 bg-gradient-to-br from-purple-600 to-purple-700 text-white text-lg md:text-xl lg:text-2xl flex flex-col items-center justify-center p-6 md:p-8 rounded-2xl shadow-lg transition-all hover:shadow-xl hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed min-h-[120px] md:min-h-[200px]"
           whileTap={{ scale: 0.95 }}
-          disabled={showResult}
+          disabled={showResult || voting}
         >
-          <span className="font-semibold text-center mb-2 break-words hyphens-auto leading-tight">
-            {q.optionA}
-          </span>
-          {showResult && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mt-2"
-            >
-              <div className="text-2xl md:text-3xl font-bold">{percentA}%</div>
-              <div className="text-sm opacity-90">({q.votesA} votes)</div>
-            </motion.div>
+          {voting ? (
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-3 border-white border-t-transparent mb-2"></div>
+              <span className="text-sm opacity-90">Voting...</span>
+            </div>
+          ) : (
+            <>
+              <span className="font-semibold text-center mb-2 break-words hyphens-auto leading-tight">
+                {q.optionA}
+              </span>
+              {showResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center mt-2"
+                >
+                  <div className="text-2xl md:text-3xl font-bold">{percentA}%</div>
+                  <div className="text-sm opacity-90">({q.votesA} votes)</div>
+                </motion.div>
+              )}
+            </>
           )}
         </motion.button>
 
@@ -193,20 +206,29 @@ export default function Home() {
           onClick={() => vote(q.id, "B")}
           className="flex-1 bg-gradient-to-br from-pink-600 to-pink-700 text-white text-lg md:text-xl lg:text-2xl flex flex-col items-center justify-center p-6 md:p-8 rounded-2xl shadow-lg transition-all hover:shadow-xl hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed min-h-[120px] md:min-h-[200px]"
           whileTap={{ scale: 0.95 }}
-          disabled={showResult}
+          disabled={showResult || voting}
         >
-          <span className="font-semibold text-center mb-2 break-words hyphens-auto leading-tight">
-            {q.optionB}
-          </span>
-          {showResult && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mt-2"
-            >
-              <div className="text-2xl md:text-3xl font-bold">{percentB}%</div>
-              <div className="text-sm opacity-90">({q.votesB} votes)</div>
-            </motion.div>
+          {voting ? (
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-3 border-white border-t-transparent mb-2"></div>
+              <span className="text-sm opacity-90">Voting...</span>
+            </div>
+          ) : (
+            <>
+              <span className="font-semibold text-center mb-2 break-words hyphens-auto leading-tight">
+                {q.optionB}
+              </span>
+              {showResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center mt-2"
+                >
+                  <div className="text-2xl md:text-3xl font-bold">{percentB}%</div>
+                  <div className="text-sm opacity-90">({q.votesB} votes)</div>
+                </motion.div>
+              )}
+            </>
           )}
         </motion.button>
       </div>
@@ -219,7 +241,7 @@ export default function Home() {
       >
         <button
           onClick={nextQuestion}
-          disabled={loading || !showResult}
+          disabled={loading || !showResult || voting}
           className="px-6 md:px-8 py-3 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-full text-lg font-semibold hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg disabled:hover:from-gray-800 disabled:hover:to-gray-900"
         >
           {loading ? "Loading..." : currentIndex + 1 === questions.length ? "Finish" : "Next Question"} →
