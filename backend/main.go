@@ -88,7 +88,7 @@ func getQuestions(c *gin.Context) {
 		filter["_id"] = bson.M{"$nin": excluded}
 	}
 
-	opts := options.Find().SetLimit(30)
+	opts := options.Find().SetLimit(15)
 	cur, err := db.Collection.Find(db.Ctx, filter, opts)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch questions"})
