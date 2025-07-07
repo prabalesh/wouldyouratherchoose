@@ -19,7 +19,7 @@ export default function QuestionCard({ question, showResult, voting, onVote }: P
         {question.question}
       </h1>
 
-      <div className="flex-1 flex flex-col md:flex-row gap-4 p-4 mx-auto max-h-[66vh] w-full max-w-[90vw]">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 p-4 mx-auto min-h-[66vh] w-full max-w-[90vw]">
         <VoteButton
           label={question.optionA}
           percent={percentA}
