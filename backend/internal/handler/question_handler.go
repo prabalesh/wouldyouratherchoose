@@ -17,18 +17,8 @@ func NewQuestionHandler() *QuestionHandler {
 	return &QuestionHandler{}
 }
 
-func getUserIdentifiers(c *gin.Context) (ip string, session string) {
-	ip = c.ClientIP()
-	session, err := c.Cookie("session_id")
-	if err != nil {
-		session = uuid.New().String()
-		c.SetCookie("session_id", session, 3600*24*30, "/", "", false, true)
-	}
-	return
-}
-
 func (h *QuestionHandler) GetQuestions(c *gin.Context) {
-	ip, session := getUserIdentifiers(c)
+	ip, session := GetUserIdentifiers(c)
 
 	// Fetch voted question IDs
 	cursor, _ := db.VoteCollection.Find(db.Ctx, bson.M{"$or": []bson.M{
