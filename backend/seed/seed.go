@@ -8,16 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/model"
 )
-
-type Question struct {
-	ID       string `bson:"_id"`
-	Question string `json:"question"`
-	OptionA  string `json:"optionA"`
-	OptionB  string `json:"optionB"`
-	VotesA   int    `bson:"votesA"`
-	VotesB   int    `bson:"votesB"`
-}
 
 func main() {
 	db.InitMongo()
@@ -29,7 +21,7 @@ func main() {
 	}
 	defer file.Close()
 
-	var questions []Question
+	var questions []model.Question
 	if err := json.NewDecoder(file).Decode(&questions); err != nil {
 		log.Fatalf("❌ Failed to decode JSON: %v", err)
 	}
