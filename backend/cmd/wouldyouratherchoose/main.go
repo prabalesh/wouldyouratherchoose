@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 
-	"github.com/prabalesh/wouldyouratherchoose/backend/db"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/model"
 
 	"go.mongodb.org/mongo-driver/bson"

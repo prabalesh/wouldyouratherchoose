@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/prabalesh/wouldyouratherchoose/backend/db"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
 )
 
 type Question struct {
