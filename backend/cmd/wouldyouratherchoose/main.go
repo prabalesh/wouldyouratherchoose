@@ -7,6 +7,8 @@ import (
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/handler"
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/middleware"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/repository"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/service"
 )
 
 func main() {
@@ -18,7 +20,10 @@ func main() {
 	r.Use(middleware.GetCorsMiddleware())
 
 	questionHandler := handler.NewQuestionHandler()
-	voteHandler := handler.NewVoteHandler()
+
+	voteRepo := repository.NewVoteRepository()
+	voteService := service.NewVoteService(voteRepo)
+	voteHandler := handler.NewVoteHandler(voteService)
 
 	r.GET("/questions", questionHandler.GetQuestions)
 	r.POST("/questions", questionHandler.CreateQuestion)

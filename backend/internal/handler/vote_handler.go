@@ -2,73 +2,43 @@ package handler
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
-	"github.com/prabalesh/wouldyouratherchoose/backend/internal/model"
-	"go.mongodb.org/mongo-driver/bson"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/dto"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/service"
 )
 
-type VoteHandler struct{}
+type VoteHandler struct {
+	voteService *service.VoteService
+}
 
-func NewVoteHandler() *VoteHandler {
-	return &VoteHandler{}
+func NewVoteHandler(voteService *service.VoteService) *VoteHandler {
+	return &VoteHandler{voteService: voteService}
 }
 
 func (h *VoteHandler) SubmitVote(c *gin.Context) {
-	var req struct {
-		QuestionID string `json:"questionId"`
-		Option     string `json:"option"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var body dto.SumbitVoteRequestDto
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	ip, session := GetUserIdentifiers(c)
 
-	// Check if already voted
-	exists := db.VoteCollection.FindOne(db.Ctx, bson.M{
-		"questionId": req.QuestionID,
-		"$or": []bson.M{
-			{"ip": ip},
-			{"sessionId": session},
-		},
-	})
-	if exists.Err() == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Already voted"})
+	question, err := h.voteService.SubmitVote(body.QuestionID, body.Option, ip, session)
+	if err != nil {
+		switch err.Error() {
+		case "already voted":
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		case "invalid option":
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case "question not found":
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
-	// Update vote count
-	filter := bson.M{"_id": req.QuestionID}
-	update := bson.M{}
-	switch req.Option {
-	case "A":
-		update = bson.M{"$inc": bson.M{"votesA": 1}}
-	case "B":
-		update = bson.M{"$inc": bson.M{"votesB": 1}}
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid option"})
-		return
-	}
-
-	res, err := db.Collection.UpdateOne(db.Ctx, filter, update)
-	if err != nil || res.MatchedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found or update failed"})
-		return
-	}
-
-	// Record vote
-	db.VoteCollection.InsertOne(db.Ctx, model.Vote{
-		QuestionID: req.QuestionID,
-		IP:         ip,
-		SessionID:  session,
-		VotedAt:    time.Now(),
-	})
-
-	var updated model.Question
-	_ = db.Collection.FindOne(db.Ctx, filter).Decode(&updated)
-	c.JSON(http.StatusOK, updated)
+	c.JSON(http.StatusOK, question)
 }
