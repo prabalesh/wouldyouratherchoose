@@ -60,3 +60,21 @@ func (r *VoteRepository) GetQuestionByID(questionID string) (*model.Question, er
 	}
 	return &q, nil
 }
+
+func (r *VoteRepository) GetVotesByUser(ip, session string) ([]model.Vote, error) {
+	filter := bson.M{
+		"sessionId": session,
+	}
+
+	cursor, err := db.VoteCollection.Find(db.Ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(db.Ctx)
+
+	var votes []model.Vote
+	if err := cursor.All(db.Ctx, &votes); err != nil {
+		return nil, err
+	}
+	return votes, nil
+}
