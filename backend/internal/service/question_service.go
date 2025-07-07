@@ -4,50 +4,42 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/model"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/repository"
 )
 
-type QuestionService struct{}
+type QuestionService struct {
+	questionRepo *repository.QuestionRepository
+	voteRepo     *repository.VoteRepository
+}
 
-func NewQuestionService() *QuestionService {
-	return &QuestionService{}
+func NewQuestionService(qr *repository.QuestionRepository, vr *repository.VoteRepository) *QuestionService {
+	return &QuestionService{
+		questionRepo: qr,
+		voteRepo:     vr,
+	}
 }
 
 func (s *QuestionService) GetQuestions(ip, session string) ([]model.Question, error) {
-	cursor, _ := db.VoteCollection.Find(db.Ctx, bson.M{"$or": []bson.M{
-		{"ip": ip},
-		{"sessionId": session},
-	}})
-	var votes []model.Vote
-	_ = cursor.All(db.Ctx, &votes)
+	votes, err := s.voteRepo.GetVotesByUser(ip, session)
+	if err != nil {
+		return nil, errors.New("internal server error")
+	}
+
+	// Build list of voted question IDs
 	votedMap := make(map[string]bool)
 	for _, v := range votes {
 		votedMap[v.QuestionID] = true
 	}
-
-	// Build filter to exclude already answered
-	filter := bson.M{}
-	if len(votedMap) > 0 {
-		excluded := make([]string, 0, len(votedMap))
-		for id := range votedMap {
-			excluded = append(excluded, id)
-		}
-		filter["_id"] = bson.M{"$nin": excluded}
+	excluded := make([]string, 0, len(votedMap))
+	for id := range votedMap {
+		excluded = append(excluded, id)
 	}
 
-	opts := options.Find().SetLimit(15)
-	cur, err := db.Collection.Find(db.Ctx, filter, opts)
+	// Fetch questions user hasn't voted on
+	questions, err := s.questionRepo.GetUnansweredQuestions(excluded, 15)
 	if err != nil {
 		return nil, errors.New("failed to fetch questions")
-	}
-	defer cur.Close(db.Ctx)
-
-	var questions []model.Question
-	if err := cur.All(db.Ctx, &questions); err != nil {
-		return nil, errors.New("internal server error")
 	}
 
 	return questions, nil
@@ -58,7 +50,7 @@ func (s *QuestionService) CreateQuestion(question *model.Question) error {
 	question.VotesA = 0
 	question.VotesB = 0
 
-	_, err := db.Collection.InsertOne(db.Ctx, question)
+	err := s.questionRepo.InsertQuestion(question)
 	if err != nil {
 		return errors.New("failed to insert question")
 	}
