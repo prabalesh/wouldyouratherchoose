@@ -11,26 +11,11 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/prabalesh/wouldyouratherchoose/backend/db"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/model"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type Question struct {
-	ID       string `json:"id" bson:"_id"`
-	Question string `json:"question"`
-	OptionA  string `json:"optionA"`
-	OptionB  string `json:"optionB"`
-	VotesA   int    `json:"votesA"`
-	VotesB   int    `json:"votesB"`
-}
-
-type Vote struct {
-	QuestionID string    `bson:"questionId"`
-	IP         string    `bson:"ip"`
-	SessionID  string    `bson:"sessionId"`
-	VotedAt    time.Time `bson:"votedAt"`
-}
 
 func main() {
 	_ = godotenv.Load()
@@ -70,7 +55,7 @@ func getQuestions(c *gin.Context) {
 		{"ip": ip},
 		{"sessionId": session},
 	}})
-	var votes []Vote
+	var votes []model.Vote
 	_ = cursor.All(db.Ctx, &votes)
 	votedMap := make(map[string]bool)
 	for _, v := range votes {
@@ -95,7 +80,7 @@ func getQuestions(c *gin.Context) {
 	}
 	defer cur.Close(db.Ctx)
 
-	var questions []Question
+	var questions []model.Question
 	if err := cur.All(db.Ctx, &questions); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decoding error"})
 		return
@@ -105,7 +90,7 @@ func getQuestions(c *gin.Context) {
 }
 
 func createQuestion(c *gin.Context) {
-	var q Question
+	var q model.Question
 	if err := c.ShouldBindJSON(&q); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -169,14 +154,14 @@ func submitVote(c *gin.Context) {
 	}
 
 	// Record vote
-	db.VoteCollection.InsertOne(db.Ctx, Vote{
+	db.VoteCollection.InsertOne(db.Ctx, model.Vote{
 		QuestionID: req.QuestionID,
 		IP:         ip,
 		SessionID:  session,
 		VotedAt:    time.Now(),
 	})
 
-	var updated Question
+	var updated model.Question
 	_ = db.Collection.FindOne(db.Ctx, filter).Decode(&updated)
 	c.JSON(http.StatusOK, updated)
 }
