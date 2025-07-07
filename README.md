@@ -4,10 +4,13 @@
 
 A full-stack "Would You Rather" game application built with Go backend and React frontend. Users can vote on questions and submit their own questions to the database.
 
+**🌐 [Live Demo](https://wouldyouratherchoose.vercel.app/)**
+
 ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
+![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
 
 </div>
 
@@ -118,6 +121,10 @@ wouldyouratherchoose/
    ```
 
    > 🎯 The application will be available at `http://localhost:5173`
+
+## 🌐 Live Demo
+
+Check out the live application: **[wouldyouratherchoose.vercel.app](https://wouldyouratherchoose.vercel.app/)**
 
 ## 🔌 API Endpoints
 
