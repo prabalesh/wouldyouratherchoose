@@ -19,7 +19,8 @@ func main() {
 
 	r.Use(middleware.GetCorsMiddleware())
 
-	questionHandler := handler.NewQuestionHandler()
+	questionService := service.NewQuestionService()
+	questionHandler := handler.NewQuestionHandler(questionService)
 
 	voteRepo := repository.NewVoteRepository()
 	voteService := service.NewVoteService(voteRepo)
