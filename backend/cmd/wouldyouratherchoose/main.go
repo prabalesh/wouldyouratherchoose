@@ -2,15 +2,14 @@ package main
 
 import (
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/db"
+	"github.com/prabalesh/wouldyouratherchoose/backend/internal/middleware"
 	"github.com/prabalesh/wouldyouratherchoose/backend/internal/model"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -23,12 +22,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{os.Getenv("FRONTEND_ORIGIN")},
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
-		AllowCredentials: true,
-	}))
+	r.Use(middleware.GetCorsMiddleware())
 
 	r.GET("/questions", getQuestions)
 	r.POST("/questions", createQuestion)
