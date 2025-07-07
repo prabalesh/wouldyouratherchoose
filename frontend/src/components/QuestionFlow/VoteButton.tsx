@@ -28,7 +28,7 @@ export default function VoteButton({ label, percent, votes, disabled, voting, on
           <span className="font-semibold text-center mb-2 break-words hyphens-auto leading-tight">
             {label}
           </span>
-          {percent !== undefined && (
+          {disabled && percent !== undefined && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

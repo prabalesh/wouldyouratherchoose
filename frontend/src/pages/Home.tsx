@@ -83,6 +83,7 @@ export default function Home() {
             setError("");
         } else {
             setLoading(true);
+            setShowResult(false);
             fetchQuestions();
         }
     };
