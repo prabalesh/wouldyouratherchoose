@@ -6,3 +6,9 @@ export interface Question {
   votesA: number;
   votesB: number;
 }
+
+export interface Toast {
+  id: string;
+  type: 'success' | 'error';
+  message: string;
+}
